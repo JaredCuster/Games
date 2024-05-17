@@ -65,6 +65,8 @@ namespace Games.Models
 
     public class BattleMoveResults
     {
+        public bool BattleIsOver { get ; set; } = false;
+
         public BattleMove? BattleMove { get; set; }
 
         public int Damage { get; set; }

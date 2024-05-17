@@ -72,12 +72,6 @@ namespace Games.Services
             battle.Active = false;
             battle.EndDate = DateTime.UtcNow;
 
-            var opponent1 = await GetCharacterForUpdateAsync(battle.Opponent1Id);
-            opponent1.InBattle = false;
-
-            var opponent2 = await GetCharacterForUpdateAsync(battle.Opponent2Id);
-            opponent2.InBattle = false;
-
             await _dataContext.SaveChangesAsync();
         }
 
@@ -124,6 +118,7 @@ namespace Games.Services
             var character = await GetCharacterForUpdateAsync(id);
 
             character.InBattle = inBattle;
+
             await _dataContext.SaveChangesAsync();
         }
 

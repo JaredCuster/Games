@@ -13,8 +13,6 @@ namespace UnitTests
         [Fact]
         public async Task GetBattles()
         {
-            mockDataService.Setup(ds => ds.GetBattlesAsync());
-
             var battleService = new BattleService(mockDataService.Object);
             await battleService.GetBattlesAsync();
 
@@ -24,8 +22,6 @@ namespace UnitTests
         [Fact]
         public async Task GetBattle()
         {
-            mockDataService.Setup(ds => ds.GetBattleAsync(It.IsAny<int>()));
-
             const int id = 1;
 
             var battleService = new BattleService(mockDataService.Object);
@@ -60,12 +56,8 @@ namespace UnitTests
                 .ReturnsAsync(battleId);
             mockDataService.Setup(ds => ds.AddBattleMoveAsync(It.IsAny<BattleMove>()))
                 .ReturnsAsync(battleMoveId);
-            mockDataService.Setup(ds => ds.UpdateBattleLastMoveAsync(battleId, battleMoveId));
-            mockDataService.Setup(ds => ds.UpdateCharacterInBattleAsync(opponent1Id, It.IsAny<bool>()));
-            mockDataService.Setup(ds => ds.UpdateCharacterInBattleAsync(opponent2Id, It.IsAny<bool>()));
             mockDataService.Setup(ds => ds.GetBattleAsync(It.IsAny<int>()))
                 .ReturnsAsync(It.IsAny<Battle>());
-            mockDataService.Setup(ds => ds.CommitTransaction(It.IsAny<IDbContextTransaction>()));
 
             var battleService = new BattleService(mockDataService.Object);
             await battleService.AddBattleAsync(opponent1Id, opponent2Id);
@@ -188,7 +180,6 @@ namespace UnitTests
                 .ReturnsAsync(character1);
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
-            mockDataService.Setup(ds => ds.CommitTransaction(It.IsAny<IDbContextTransaction>()));
 
             var battleService = new BattleService(mockDataService.Object);
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Accept);
@@ -239,7 +230,6 @@ namespace UnitTests
                 .ReturnsAsync(character1);
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
-            mockDataService.Setup(ds => ds.CommitTransaction(It.IsAny<IDbContextTransaction>()));
 
             var battleService = new BattleService(mockDataService.Object);
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Retreat);
@@ -290,8 +280,6 @@ namespace UnitTests
                 .ReturnsAsync(character1);
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
-            mockDataService.Setup(ds => ds.UpdateCharacterHealthAsync(defenderId, It.IsAny<int>()));
-            mockDataService.Setup(ds => ds.CommitTransaction(It.IsAny<IDbContextTransaction>()));
 
             var battleService = new BattleService(mockDataService.Object);
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Attack);
@@ -346,10 +334,6 @@ namespace UnitTests
                 .ReturnsAsync(character1);
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
-            mockDataService.Setup(ds => ds.UpdateCharacterHealthAsync(defenderId, It.IsAny<int>()));
-            mockDataService.Setup(ds => ds.UpdateCharacterNoInventoryAsync(defenderId));
-            mockDataService.Setup(ds => ds.UpdateBattleEndAsync(battleId));
-            mockDataService.Setup(ds => ds.CommitTransaction(It.IsAny<IDbContextTransaction>()));
 
             var battleService = new BattleService(mockDataService.Object);
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Attack);
@@ -371,6 +355,10 @@ namespace UnitTests
                It.Is<int>(i => i == defenderId)), Times.Once());
             mockDataService.Verify(s => s.UpdateBattleEndAsync(
                It.Is<int>(i => i == battleId)), Times.Once());
+            mockDataService.Verify(s => s.UpdateCharacterInBattleAsync(
+                aggressorId, false), Times.Once());
+            mockDataService.Verify(s => s.UpdateCharacterInBattleAsync(
+                defenderId, false), Times.Once());
             mockDataService.Verify(s => s.CommitTransaction(
                 It.Is<IDbContextTransaction>(t => t == transactionObj)), Times.Once());
 
@@ -409,10 +397,6 @@ namespace UnitTests
                 .ReturnsAsync(character1);
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
-            mockDataService.Setup(ds => ds.UpdateCharacterHealthAsync(defenderId, It.IsAny<int>()));
-            mockDataService.Setup(ds => ds.UpdateCharacterNoInventoryAsync(defenderId));
-            mockDataService.Setup(ds => ds.UpdateBattleEndAsync(battleId));
-            mockDataService.Setup(ds => ds.CommitTransaction(It.IsAny<IDbContextTransaction>()));
 
             var battleService = new BattleService(mockDataService.Object);
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Surrender);
@@ -470,8 +454,6 @@ namespace UnitTests
                 .ReturnsAsync(character1);
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
-            mockDataService.Setup(ds => ds.UpdateCharacterHealthAsync(defenderId, It.IsAny<int>()));
-            mockDataService.Setup(ds => ds.CommitTransaction(It.IsAny<IDbContextTransaction>()));
 
             var battleService = new BattleService(mockDataService.Object);
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Attack);
@@ -527,10 +509,6 @@ namespace UnitTests
                 .ReturnsAsync(character1);
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
-            mockDataService.Setup(ds => ds.UpdateCharacterHealthAsync(defenderId, It.IsAny<int>()));
-            mockDataService.Setup(ds => ds.UpdateCharacterNoInventoryAsync(defenderId));
-            mockDataService.Setup(ds => ds.UpdateBattleEndAsync(battleId));
-            mockDataService.Setup(ds => ds.CommitTransaction(It.IsAny<IDbContextTransaction>()));
 
             var battleService = new BattleService(mockDataService.Object);
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Attack);
@@ -552,6 +530,171 @@ namespace UnitTests
                It.Is<int>(i => i == defenderId)), Times.Once());
             mockDataService.Verify(s => s.UpdateBattleEndAsync(
                It.Is<int>(i => i == battleId)), Times.Once());
+            mockDataService.Verify(s => s.UpdateCharacterInBattleAsync(
+                aggressorId, false), Times.Once());
+            mockDataService.Verify(s => s.UpdateCharacterInBattleAsync(
+                defenderId, false), Times.Once());
+            mockDataService.Verify(s => s.CommitTransaction(
+                It.Is<IDbContextTransaction>(t => t == transactionObj)), Times.Once());
+
+            Assert.NotNull(results);
+        }
+
+        [Fact]
+        public async Task AddBattleMove_LastMoveAttack_Retreat()
+        {
+            int opponent1Id = 1;
+            int opponent2Id = 2;
+            var character1 = CreateCharacter(opponent1Id);
+            var character2 = CreateCharacter(opponent2Id);
+
+            var aggressorId = opponent2Id;
+            var defenderId = opponent1Id;
+
+            int battleId = 1;
+            int battleMoveId = 1;
+            var lastMove = CreateBattleMove(battleMoveId, battleId, defenderId, Move.Attack);
+            var battle = CreateBattle(battleId, opponent1Id, opponent2Id, lastMove);
+
+            var transaction = new Mock<IDbContextTransaction>();
+            transaction.Setup(t => t.TransactionId);
+            var transactionObj = transaction.Object;
+
+            mockDataService.Setup(ds => ds.BeginTransaction())
+                .Returns(transactionObj);
+            mockDataService.Setup(ds => ds.GetBattleAsync(It.IsAny<int>()))
+                .ReturnsAsync(battle);
+            mockDataService.Setup(ds => ds.AddBattleMoveAsync(It.IsAny<BattleMove>()))
+                .ReturnsAsync(battleMoveId);
+            mockDataService.Setup(ds => ds.GetCharacterAsync(opponent1Id))
+                .ReturnsAsync(character1);
+            mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
+               .ReturnsAsync(character2);
+
+            var battleService = new BattleService(mockDataService.Object);
+            var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Retreat);
+
+            mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
+            mockDataService.Verify(s => s.GetBattleAsync(
+                It.IsAny<int>()), Times.Once());
+            mockDataService.Verify(s => s.AddBattleMoveAsync(
+                It.Is<BattleMove>(bm =>
+                    bm.BattleId == battleId &&
+                    bm.OpponentId == aggressorId &&
+                    bm.Move == Move.Retreat &&
+                    bm.CreateDate.Date == DateTime.Now.Date
+                )), Times.Once());
+            mockDataService.Verify(s => s.CommitTransaction(
+                It.Is<IDbContextTransaction>(t => t == transactionObj)), Times.Once());
+
+            Assert.NotNull(results);
+        }
+
+        [Fact]
+        public async Task AddBattleMove_LastMoveAttack_Surrender()
+        {
+            int opponent1Id = 1;
+            int opponent2Id = 2;
+            var character1 = CreateCharacter(opponent1Id);
+            var character2 = CreateCharacter(opponent2Id);
+            var initialHealth = character2.Health;
+            var surrenderedHealth = initialHealth / 2;
+
+            var aggressorId = opponent2Id;
+            var defenderId = opponent1Id;
+
+            int battleId = 1;
+            int battleMoveId = 1;
+            var lastMove = CreateBattleMove(battleMoveId, battleId, defenderId, Move.Attack);
+            var battle = CreateBattle(battleId, opponent1Id, opponent2Id, lastMove);
+
+            var transaction = new Mock<IDbContextTransaction>();
+            transaction.Setup(t => t.TransactionId);
+            var transactionObj = transaction.Object;
+
+            mockDataService.Setup(ds => ds.BeginTransaction())
+                .Returns(transactionObj);
+            mockDataService.Setup(ds => ds.GetBattleAsync(It.IsAny<int>()))
+                .ReturnsAsync(battle);
+            mockDataService.Setup(ds => ds.AddBattleMoveAsync(It.IsAny<BattleMove>()))
+                .ReturnsAsync(battleMoveId);
+            mockDataService.Setup(ds => ds.GetCharacterAsync(opponent1Id))
+                .ReturnsAsync(character1);
+            mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
+               .ReturnsAsync(character2);
+
+            var battleService = new BattleService(mockDataService.Object);
+            var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Surrender);
+
+            mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
+            mockDataService.Verify(s => s.GetBattleAsync(
+                It.IsAny<int>()), Times.Once());
+            mockDataService.Verify(s => s.AddBattleMoveAsync(
+                It.Is<BattleMove>(bm =>
+                    bm.BattleId == battleId &&
+                    bm.OpponentId == aggressorId &&
+                    bm.Move == Move.Surrender &&
+                    bm.CreateDate.Date == DateTime.Now.Date
+                )), Times.Once());
+            mockDataService.Verify(s => s.UpdateCharacterHealthAsync(
+                It.Is<int>(i => i == defenderId),
+                surrenderedHealth), Times.Once());
+            mockDataService.Verify(s => s.UpdateCharacterNoInventoryAsync(
+               It.Is<int>(i => i == defenderId)), Times.Once());
+            mockDataService.Verify(s => s.UpdateBattleEndAsync(
+               It.Is<int>(i => i == battleId)), Times.Once());
+            mockDataService.Verify(s => s.CommitTransaction(
+                It.Is<IDbContextTransaction>(t => t == transactionObj)), Times.Once());
+
+            Assert.NotNull(results);
+        }
+
+        [Fact]
+        public async Task AddBattleMove_LastMoveRetreat_Pursue()
+        {
+            int opponent1Id = 1;
+            int opponent2Id = 2;
+            var character1 = CreateCharacter(opponent1Id);
+            var character2 = CreateCharacter(opponent2Id);
+            var initialHealth = character2.Health;
+            var surrenderedHealth = initialHealth / 2;
+
+            var aggressorId = opponent1Id;
+            var defenderId = opponent2Id;
+
+            int battleId = 1;
+            int battleMoveId = 1;
+            var lastMove = CreateBattleMove(battleMoveId, battleId, defenderId, Move.Retreat);
+            var battle = CreateBattle(battleId, opponent1Id, opponent2Id, lastMove);
+
+            var transaction = new Mock<IDbContextTransaction>();
+            transaction.Setup(t => t.TransactionId);
+            var transactionObj = transaction.Object;
+
+            mockDataService.Setup(ds => ds.BeginTransaction())
+                .Returns(transactionObj);
+            mockDataService.Setup(ds => ds.GetBattleAsync(It.IsAny<int>()))
+                .ReturnsAsync(battle);
+            mockDataService.Setup(ds => ds.AddBattleMoveAsync(It.IsAny<BattleMove>()))
+                .ReturnsAsync(battleMoveId);
+            mockDataService.Setup(ds => ds.GetCharacterAsync(opponent1Id))
+                .ReturnsAsync(character1);
+            mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
+               .ReturnsAsync(character2);
+
+            var battleService = new BattleService(mockDataService.Object);
+            var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Pursue);
+
+            mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
+            mockDataService.Verify(s => s.GetBattleAsync(
+                It.IsAny<int>()), Times.Once());
+            mockDataService.Verify(s => s.AddBattleMoveAsync(
+                It.Is<BattleMove>(bm =>
+                    bm.BattleId == battleId &&
+                    bm.OpponentId == aggressorId &&
+                    bm.Move == Move.Pursue &&
+                    bm.CreateDate.Date == DateTime.Now.Date
+                )), Times.Once());
             mockDataService.Verify(s => s.CommitTransaction(
                 It.Is<IDbContextTransaction>(t => t == transactionObj)), Times.Once());
 

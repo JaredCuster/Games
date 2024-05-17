@@ -42,8 +42,7 @@ namespace Games.Services
 
             var opponent1 = await _dataService.GetCharacterAsync(opponent1Id);
             var opponent2 = await _dataService.GetCharacterAsync(opponent2Id);
-            if (opponent1 == null || opponent1.InBattle ||
-                opponent2 == null || opponent2.InBattle)
+            if (opponent1.InBattle || opponent2.InBattle)
             {
                 throw new BattleException("One of the characters are already in battle");
             }
@@ -203,7 +202,8 @@ namespace Games.Services
                     // Defender Died
                     await _dataService.UpdateCharacterHealthAsync(defender.Id, 0);
                     results.Plunder = await _dataService.UpdateCharacterNoInventoryAsync(defender.Id);
-                    await _dataService.UpdateBattleEndAsync(battle.Id);
+                    
+                    results.BattleIsOver = await EndBattle(battle.Id, aggressor.Id, defender.Id);
                 }
                 else
                 {
@@ -219,18 +219,31 @@ namespace Games.Services
         {
             var results = new BattleMoveResults();
 
-            // Defender Surrender
+            // Defender Surrenders
             var health = defender.Health == 1 ? defender.Health : defender.Health / 2;
             await _dataService.UpdateCharacterHealthAsync(defender.Id, health);
             results.Plunder = await _dataService.UpdateCharacterNoInventoryAsync(defender.Id);
-            await _dataService.UpdateBattleEndAsync(battle.Id);
+
+            results.BattleIsOver = await EndBattle(battle.Id, aggressor.Id, defender.Id);
 
             return results;
         }
 
         private async Task<BattleMoveResults> ExecuteQuitAsync(Battle battle, Character aggressor, Character defender)
         {
-            return await Task.FromResult(new BattleMoveResults());
+            var results = new BattleMoveResults();
+
+            results.BattleIsOver = await EndBattle(battle.Id, aggressor.Id, defender.Id);
+
+            return results;
+        }
+
+        private async Task<bool> EndBattle(int battleId, int aggressorId, int defenderId)
+        {
+            await _dataService.UpdateBattleEndAsync(battleId);
+            await _dataService.UpdateCharacterInBattleAsync(aggressorId, false);
+            await _dataService.UpdateCharacterInBattleAsync(defenderId, false);
+            return true;
         }
 
         private int CalculateMoveValue(Character character, ItemCategory category)

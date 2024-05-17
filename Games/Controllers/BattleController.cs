@@ -86,7 +86,7 @@ namespace Games.Controllers
         }
 
         /// <summary>
-        /// Perform a battle move
+        /// Make a battle move
         /// </summary>
         /// <param name="battleId">The id of the battle</param>
         /// <param name="opponentId">The id of the other character doing the move</param>
@@ -107,9 +107,9 @@ namespace Games.Controllers
             {
                 var move = (Move)Enum.ToObject(typeof(Move), moveId);
 
-                var battle = await _battleService.AddBattleMoveAsync(battleId, opponentId, move);
+                var results = await _battleService.AddBattleMoveAsync(battleId, opponentId, move);
 
-                return Ok(battle);
+                return Ok(results);
             }
             catch (NotFoundException e)
             {
