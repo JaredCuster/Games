@@ -20,4 +20,9 @@
 	<InternalsVisibleTo Include="IntegrationTests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+    <Folder Include="Sql\" />
+  </ItemGroup>
+
 </Project>

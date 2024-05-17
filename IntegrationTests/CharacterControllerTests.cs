@@ -5,6 +5,8 @@ using Games.Models;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using System.Net.Http.Headers;
+using Games.Services;
+using System.Net;
 
 namespace IntegrationTests
 {
@@ -55,6 +57,26 @@ namespace IntegrationTests
                 new AuthenticationHeaderValue(token.TokenType, token.AccessToken);
 
             _loggedIn = true;
+        }
+
+        [Fact]
+        public async Task Test_CreateCharacter_Duplicate_ThrowsException()
+        {
+            await Register();
+            await Login();
+
+            var name = "Duplicate";
+            var race = 1;
+
+            var createResponse = await _client.PostAsync($"/api/Character?name={name}&raceId={race}", null);
+            createResponse.EnsureSuccessStatusCode();
+            var createCharacter = await createResponse.Content.ReadFromJsonAsync<Character>();
+            Assert.NotNull(createCharacter);
+            Assert.True(createCharacter.Id > 0);
+
+            var createDupResponse = await _client.PostAsync($"/api/Character?name={name}&raceId={race}", null);
+            var dupStatus = createDupResponse.StatusCode;
+            Assert.Equal(HttpStatusCode.BadRequest, dupStatus);
         }
 
         [Fact]

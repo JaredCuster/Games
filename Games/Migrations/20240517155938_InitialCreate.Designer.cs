@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Games.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20240514202117_Initial")]
-    partial class Initial
+    [Migration("20240517155938_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,9 @@ namespace Games.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Active")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("EndDate")
@@ -40,9 +43,6 @@ namespace Games.Migrations
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -92,6 +92,9 @@ namespace Games.Migrations
                     b.Property<int>("Health")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("InBattle")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Level")
                         .HasColumnType("INTEGER");
 
@@ -112,9 +115,6 @@ namespace Games.Migrations
                     b.Property<int?>("SecondaryItemId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("State")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("PrimaryItemId");
@@ -122,6 +122,9 @@ namespace Games.Migrations
                     b.HasIndex("RaceId");
 
                     b.HasIndex("SecondaryItemId");
+
+                    b.HasIndex("OwnerId", "Name")
+                        .IsUnique();
 
                     b.ToTable("Characters");
                 });
@@ -335,8 +338,8 @@ namespace Games.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "62db02fd-5523-4997-9884-cb3c361c87a4",
-                            ConcurrencyStamp = "391136fd-fba8-4395-afb2-ff3f8b489525",
+                            Id = "14152646-3736-4e5d-bcbf-56c7fd3a093b",
+                            ConcurrencyStamp = "e1ead184-b442-4a22-a2f8-202f135cf51c",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -431,17 +434,17 @@ namespace Games.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "47e54091-caf0-40c1-94a6-b72b005e23ae",
+                            Id = "65184ed6-de49-4fbb-9ac2-c0f43f789925",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "929a220d-bacc-4a14-a6be-e354cb97bd8f",
+                            ConcurrencyStamp = "901522a5-e428-417c-bf9c-51d6c539f406",
                             Email = "admin@example.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIo3FOmUT67gPVx9wy9KlNIh0TxGirLQoUHmF6bjcZHwmhr0mkajCOu2d3v4V2uWAw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAENd48cwhAAXtHS4/+GsO1mjw70qF0qBXNHFO5vDMFsOR3qzAzk73I/a6aG6CKhyulA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "b2ada437-5ae7-4785-8d06-e5d0e513a1d7",
+                            SecurityStamp = "f5aa79a5-953e-4866-a684-50fcc3435479",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
@@ -509,8 +512,8 @@ namespace Games.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = "47e54091-caf0-40c1-94a6-b72b005e23ae",
-                            RoleId = "62db02fd-5523-4997-9884-cb3c361c87a4"
+                            UserId = "65184ed6-de49-4fbb-9ac2-c0f43f789925",
+                            RoleId = "14152646-3736-4e5d-bcbf-56c7fd3a093b"
                         });
                 });
 

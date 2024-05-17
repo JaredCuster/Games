@@ -1,5 +1,8 @@
 ﻿using Games.Models;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Mono.TextTemplating;
+using System;
 using System.Security.Claims;
 using System.Xml.Linq;
 
@@ -76,7 +79,18 @@ namespace Games.Services
                 CreateDate = DateTime.Now
             };
 
-            await _dataService.AddCharacterAsync(newCharacter);
+            try
+            {
+                await _dataService.AddCharacterAsync(newCharacter);
+            }
+            catch (DbUpdateException dbe)
+            {
+                var ie = dbe.InnerException as SqliteException;
+                if (ie?.SqliteErrorCode == 19)
+                {
+                    throw new CharacterException("Name already taken");
+                }
+            }
 
             var character = await _dataService.GetCharacterAsync(newCharacter.Id);
 

@@ -85,6 +85,9 @@ namespace Games.Data
                 .HasMany(c => c.Inventory)
                 .WithOne()
                 .HasForeignKey(c => c.CharacterId);
+            modelBuilder.Entity<Character>()
+                .HasIndex(c => new { c.OwnerId, c.Name })
+                .IsUnique();
 
             modelBuilder.Entity<Battle>()
                 .HasMany(b => b.Moves)

@@ -2,6 +2,8 @@
 using Games.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 
 namespace Games.Controllers
 {
@@ -81,13 +83,20 @@ namespace Games.Controllers
         /// <returns></returns>
         /// <response code="200">Returns the character</response>
         /// <response code="401">Unauthorized</response>
+        /// <response code="400"></response>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Character))]
         public async Task<IActionResult> Add(string name, int raceId)
         {
-            var character = await _characterService.AddCharacterAsync(name, raceId);
-
-            return Ok(character);
+            try
+            {
+                var character = await _characterService.AddCharacterAsync(name, raceId);
+                return Ok(character);
+            }
+            catch (CharacterException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         /// <summary>

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Games.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -212,7 +212,7 @@ namespace Games.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Opponent1Id = table.Column<int>(type: "INTEGER", nullable: false),
                     Opponent2Id = table.Column<int>(type: "INTEGER", nullable: false),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    Active = table.Column<bool>(type: "INTEGER", nullable: false),
                     LastMoveId = table.Column<int>(type: "INTEGER", nullable: true),
                     StartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     EndDate = table.Column<DateTime>(type: "TEXT", nullable: false)
@@ -259,7 +259,7 @@ namespace Games.Migrations
                     Level = table.Column<int>(type: "INTEGER", nullable: false),
                     PrimaryItemId = table.Column<int>(type: "INTEGER", nullable: true),
                     SecondaryItemId = table.Column<int>(type: "INTEGER", nullable: true),
-                    State = table.Column<int>(type: "INTEGER", nullable: false),
+                    InBattle = table.Column<bool>(type: "INTEGER", nullable: false),
                     CreateDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     OwnerId = table.Column<string>(type: "TEXT", nullable: false)
                 },
@@ -287,12 +287,12 @@ namespace Games.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "62db02fd-5523-4997-9884-cb3c361c87a4", "391136fd-fba8-4395-afb2-ff3f8b489525", "Admin", "ADMIN" });
+                values: new object[] { "14152646-3736-4e5d-bcbf-56c7fd3a093b", "e1ead184-b442-4a22-a2f8-202f135cf51c", "Admin", "ADMIN" });
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { "47e54091-caf0-40c1-94a6-b72b005e23ae", 0, "929a220d-bacc-4a14-a6be-e354cb97bd8f", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEIo3FOmUT67gPVx9wy9KlNIh0TxGirLQoUHmF6bjcZHwmhr0mkajCOu2d3v4V2uWAw==", null, false, "b2ada437-5ae7-4785-8d06-e5d0e513a1d7", false, "admin" });
+                values: new object[] { "65184ed6-de49-4fbb-9ac2-c0f43f789925", 0, "901522a5-e428-417c-bf9c-51d6c539f406", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAENd48cwhAAXtHS4/+GsO1mjw70qF0qBXNHFO5vDMFsOR3qzAzk73I/a6aG6CKhyulA==", null, false, "f5aa79a5-953e-4866-a684-50fcc3435479", false, "admin" });
 
             migrationBuilder.InsertData(
                 table: "CharacterRaces",
@@ -327,7 +327,7 @@ namespace Games.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetUserRoles",
                 columns: new[] { "RoleId", "UserId" },
-                values: new object[] { "62db02fd-5523-4997-9884-cb3c361c87a4", "47e54091-caf0-40c1-94a6-b72b005e23ae" });
+                values: new object[] { "14152646-3736-4e5d-bcbf-56c7fd3a093b", "65184ed6-de49-4fbb-9ac2-c0f43f789925" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -395,6 +395,12 @@ namespace Games.Migrations
                 name: "IX_CharacterItems_ItemId",
                 table: "CharacterItems",
                 column: "ItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Characters_OwnerId_Name",
+                table: "Characters",
+                columns: new[] { "OwnerId", "Name" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Characters_PrimaryItemId",
