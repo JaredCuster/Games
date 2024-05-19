@@ -32,6 +32,8 @@ namespace Games.Services
         public Task<CharacterItem> AddCharacterItemAsync(int characterId, int itemId);
 
         public Task DeleteCharacterItemAsync(int characterItemId);
+
+        public Task<IEnumerable<Battle>> GetCharacterBattlesAsync(int characterId);
     }
 
 
@@ -201,7 +203,7 @@ namespace Games.Services
                 }
             }
 
-            if (capacity <= items.Count)
+            if (capacity <= items.Count())
             {
                 throw new CharacterException("Insufficient capacity");
             }
@@ -238,6 +240,13 @@ namespace Games.Services
             await _dataService.DeleteCharacterItemAsync(characterItemId);
 
             _dataService.CommitTransaction(transaction);
+        }
+
+        public async Task<IEnumerable<Battle>> GetCharacterBattlesAsync(int characterId)
+        {
+            var battles = await _dataService.GetCharacterBattlesAsync(characterId);
+
+            return battles;
         }
     }
 }

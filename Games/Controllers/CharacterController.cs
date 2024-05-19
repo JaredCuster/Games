@@ -20,10 +20,10 @@ namespace Games.Controllers
         }
 
         /// <summary>
-        /// Get the living characters you own
+        /// Get the living characters
         /// </summary>
         /// <returns></returns>
-        /// <response code="200">Returns the living characters you own</response>
+        /// <response code="200">Returns the living characters</response>
         /// <response code="401">Unauthorized</response>
         [HttpGet]
         [Route("/api/Characters")]
@@ -36,10 +36,10 @@ namespace Games.Controllers
         }
 
         /// <summary>
-        /// Get the deceased characters you own
+        /// Get the deceased characters
         /// </summary>
         /// <returns></returns>
-        /// <response code="200">Returns the deceased characters you own</response>
+        /// <response code="200">Returns the deceased characters</response>
         /// <response code="401">Unauthorized</response>
         [HttpGet]
         [Route("/api/DeceasedCharacters")]
@@ -54,7 +54,7 @@ namespace Games.Controllers
         /// <summary>
         /// Get a specific character
         /// </summary>
-        /// <param name="id">The id of the character you own</param>
+        /// <param name="id">The id of the character</param>
         /// <returns></returns>
         /// <response code="200">Returns the character</response>
         /// <response code="401">Unauthorized</response>
@@ -102,7 +102,7 @@ namespace Games.Controllers
         /// <summary>
         /// Update characters name
         /// </summary>
-        /// <param name="id">The id of the character you own</param>
+        /// <param name="id">The id of the character</param>
         /// <param name="name">The new name of the character</param>
         /// <returns></returns>
         /// <response code="200">Returns the updated character</response>
@@ -132,7 +132,7 @@ namespace Games.Controllers
         /// <summary>
         /// Update characters primary item
         /// </summary>
-        /// <param name="id">The id of the character you own</param>
+        /// <param name="id">The id of the character</param>
         /// <param name="inventoryItemId">The item id you have in inventory</param>
         /// <returns></returns>
         /// <response code="200">Returns the updated character</response>
@@ -162,7 +162,7 @@ namespace Games.Controllers
         /// <summary>
         /// Update characters secondary item
         /// </summary>
-        /// <param name="id">The id of the character you own</param>
+        /// <param name="id">The id of the character</param>
         /// <param name="inventoryItemId">The item id you have in inventory</param>
         /// <returns></returns>
         /// <response code="200">Returns the updated character</response>
@@ -196,7 +196,7 @@ namespace Games.Controllers
         /// <summary>
         /// Delete a character
         /// </summary>
-        /// <param name="id">The id of the character you own</param>
+        /// <param name="id">The id of the character</param>
         /// <returns></returns>
         /// <response code="200">Character deleted</response>
         [HttpDelete]
@@ -218,7 +218,7 @@ namespace Games.Controllers
         /// <summary>
         /// Get the characters inventory
         /// </summary>
-        /// <param name="id">The id of the character you own</param>
+        /// <param name="id">The id of the character</param>
         /// <returns></returns>
         /// <response code="200">Returns the characters inventory</response>
         [HttpGet]
@@ -258,7 +258,7 @@ namespace Games.Controllers
         /// <summary>
         /// Add an item to the characters inventory
         /// </summary>
-        /// <param name="id">The id of the character you own</param>
+        /// <param name="id">The id of the character</param>
         /// <param name="itemId">The id of the item</param>
         /// <returns></returns>
         /// <response code="200">Returns the inventory item</response>
@@ -307,6 +307,22 @@ namespace Games.Controllers
             {
                 return NotFound(e.Message);
             }
+        }
+
+        /// <summary>
+        /// Get the characters active battle
+        /// </summary>
+        /// <param name="id">The id of the character</param>
+        /// <returns></returns>
+        /// <response code="200">Returns the active battle</response>
+        [HttpGet]
+        [Route("{id:int}/Battle")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<CharacterItem>))]
+        public async Task<IActionResult> GetBatttles([FromRoute] int id)
+        {
+            var battles = await _characterService.GetCharacterBattlesAsync(id);
+
+            return Ok(battles);
         }
     }
 }

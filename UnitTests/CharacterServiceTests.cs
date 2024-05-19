@@ -12,8 +12,6 @@ namespace UnitTests
         [Fact]
         public async Task GetCharacters()
         {
-            mockDataService.Setup(ds => ds.GetCharactersAsync());
-
             var characterService = new CharacterService(mockDataService.Object);
             await characterService.GetCharactersAsync();
 
@@ -23,8 +21,6 @@ namespace UnitTests
         [Fact]
         public async Task GetDeceasedCharacters()
         {
-            mockDataService.Setup(ds => ds.GetDeceasedCharactersAsync());
-
             var characterService = new CharacterService(mockDataService.Object);
             await characterService.GetDeceasedCharactersAsync();
 
@@ -34,8 +30,6 @@ namespace UnitTests
         [Fact]
         public async Task GetCharacter()
         {
-            mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()));
-
             const int id = 1;
 
             var characterService = new CharacterService(mockDataService.Object);
@@ -48,9 +42,6 @@ namespace UnitTests
         [Fact]
         public async Task AddCharacter()
         {
-            mockDataService.Setup(ds => ds.AddCharacterAsync(It.IsAny<Character>()));
-            mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()));
-
             const string name = "TestName";
             const int raceId = 1;
 
@@ -73,9 +64,6 @@ namespace UnitTests
         [Fact]
         public async Task UpdateCharacterName()
         {
-            mockDataService.Setup(ds => ds.UpdateCharacterNameAsync(It.IsAny<int>(), It.IsAny<string>()));
-            mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()));
-
             const int id = 1;
             const string name = "TestName";
 
@@ -104,10 +92,6 @@ namespace UnitTests
         [Fact]
         public async Task UpdateCharacterPrimaryItem_NullItem()
         {
-            mockDataService.Setup(ds => ds.UpdateCharacterPrimaryItemAsync(
-                It.IsAny<int>(), It.IsAny<int?>()));
-            mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()));
-
             const int id = 1;
             const int itemId = 0;
 
@@ -124,10 +108,6 @@ namespace UnitTests
         [Fact]
         public async Task UpdateCharacterSecondaryItem_NullItem()
         {
-            mockDataService.Setup(ds => ds.UpdateCharacterSecondaryItemAsync(
-                It.IsAny<int>(), It.IsAny<int?>()));
-            mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()));
-
             const int id = 1;
             const int itemId = 0;
 
@@ -152,9 +132,6 @@ namespace UnitTests
 
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
-            mockDataService.Setup(ds => ds.UpdateCharacterPrimaryItemAsync(
-                It.IsAny<int>(), It.IsAny<int?>()));
-
             var characterService = new CharacterService(mockDataService.Object);
             await characterService.UpdateCharacterItemAsync(id, itemId, true);
 
@@ -176,9 +153,7 @@ namespace UnitTests
 
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
-            mockDataService.Setup(ds => ds.UpdateCharacterSecondaryItemAsync(
-                It.IsAny<int>(), It.IsAny<int?>()));
-
+            
             var characterService = new CharacterService(mockDataService.Object);
             await characterService.UpdateCharacterItemAsync(id, itemId, false);
 
@@ -201,8 +176,6 @@ namespace UnitTests
 
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
-            mockDataService.Setup(ds => ds.UpdateCharacterPrimaryItemAsync(
-                It.IsAny<int>(), It.IsAny<int?>()));
 
             var characterService = new CharacterService(mockDataService.Object);
             var actual = () => characterService.UpdateCharacterItemAsync(id, itemId, true);
@@ -222,8 +195,6 @@ namespace UnitTests
 
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
-            mockDataService.Setup(ds => ds.UpdateCharacterSecondaryItemAsync(
-                It.IsAny<int>(), It.IsAny<int?>()));
 
             var characterService = new CharacterService(mockDataService.Object);
             var actual = () => characterService.UpdateCharacterItemAsync(id, itemId, false);
@@ -248,8 +219,6 @@ namespace UnitTests
         [Fact]
         public async Task GetCharacterItems()
         {
-            mockDataService.Setup(ds => ds.GetCharacterItemsAsync(It.IsAny<int>()));
-
             const int id = 1;
 
             var characterService = new CharacterService(mockDataService.Object);
@@ -262,8 +231,6 @@ namespace UnitTests
         [Fact]
         public async Task GetCharacterItem()
         {
-            mockDataService.Setup(ds => ds.GetCharacterItemAsync(It.IsAny<int>()));
-
             const int id = 1;
 
             var characterService = new CharacterService(mockDataService.Object);
@@ -281,7 +248,6 @@ namespace UnitTests
             
             mockDataService.Setup(ds => ds.GetCharacterItemsAsync(It.IsAny<int>()))
                 .ReturnsAsync([]);
-            mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()));
 
             var characterService = new CharacterService(mockDataService.Object);
             await characterService.AddCharacterItemAsync(id, itemId);
@@ -333,10 +299,8 @@ namespace UnitTests
                 .Returns(transactionObj);
             mockDataService.Setup(ds => ds.GetCharacterItemAsync(It.IsAny<int>()))
                 .ReturnsAsync(characterItem);
-            mockDataService.Setup(ds => ds.DeleteCharacterAsync(It.IsAny<int>()));
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
-            mockDataService.Setup(ds => ds.CommitTransaction(It.IsAny<IDbContextTransaction>()));
 
             var characterService = new CharacterService(mockDataService.Object);
             await characterService.DeleteCharacterItemAsync(characterItemId);
@@ -370,11 +334,8 @@ namespace UnitTests
                 .Returns(transactionObj);
             mockDataService.Setup(ds => ds.GetCharacterItemAsync(It.IsAny<int>()))
                 .ReturnsAsync(characterItem);
-            mockDataService.Setup(ds => ds.DeleteCharacterAsync(It.IsAny<int>()));
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
-            mockDataService.Setup(ds => ds.UpdateCharacterPrimaryItemAsync(It.IsAny<int>(), It.IsAny<int>()));
-            mockDataService.Setup(ds => ds.CommitTransaction(It.IsAny<IDbContextTransaction>()));
 
             var characterService = new CharacterService(mockDataService.Object);
             await characterService.DeleteCharacterItemAsync(characterItemId);
@@ -411,11 +372,8 @@ namespace UnitTests
                 .Returns(transactionObj);
             mockDataService.Setup(ds => ds.GetCharacterItemAsync(It.IsAny<int>()))
                 .ReturnsAsync(characterItem);
-            mockDataService.Setup(ds => ds.DeleteCharacterAsync(It.IsAny<int>()));
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
-            mockDataService.Setup(ds => ds.UpdateCharacterSecondaryItemAsync(It.IsAny<int>(), It.IsAny<int>()));
-            mockDataService.Setup(ds => ds.CommitTransaction(It.IsAny<IDbContextTransaction>()));
 
             var characterService = new CharacterService(mockDataService.Object);
             await characterService.DeleteCharacterItemAsync(characterItemId);
@@ -432,6 +390,18 @@ namespace UnitTests
                 null), Times.Once());
             mockDataService.Verify(s => s.CommitTransaction(
                 It.Is<IDbContextTransaction>(t => t == transactionObj)), Times.Once());
+        }
+
+        [Fact]
+        public async Task GetCharacterBattles()
+        {
+            const int id = 1;
+
+            var characterService = new CharacterService(mockDataService.Object);
+            await characterService.GetCharacterBattlesAsync(id);
+
+            mockDataService.Verify(s => s.GetCharacterBattlesAsync(
+                It.Is<int>(i => i == id)), Times.Once());
         }
 
         private Character CreateCharacter(int? id = null)

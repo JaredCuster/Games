@@ -23,13 +23,15 @@ namespace Games.Services
         public Task DeleteCharacterAsync(int id);
 
 
-        public Task<ICollection<CharacterItem>> GetCharacterItemsAsync(int characterId);
+        public Task<IEnumerable<CharacterItem>> GetCharacterItemsAsync(int characterId);
 
         public Task<CharacterItem> GetCharacterItemAsync(int inventoryItemId);
 
         public Task AddCharacterItemAsync(int characterId, CharacterItem characterItem);
 
         public Task DeleteCharacterItemAsync(int inventoryItemId);
+
+        public Task<IEnumerable<Battle>> GetCharacterBattlesAsync(int characterId);
     }
 
     public class CharacterDataService : BaseDataService, ICharacterDataService
@@ -120,7 +122,7 @@ namespace Games.Services
             }
         }
 
-        public async Task<ICollection<CharacterItem>> GetCharacterItemsAsync(int characterId)
+        public async Task<IEnumerable<CharacterItem>> GetCharacterItemsAsync(int characterId)
         {
             var characterItems = await _dataContext.CharacterItems
                 .Where(ci => ci.CharacterId == characterId)
@@ -155,6 +157,17 @@ namespace Games.Services
 
             _dataContext.Remove(characterItem);
             await _dataContext.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<Battle>> GetCharacterBattlesAsync(int characterId)
+        {
+            var battles = await _dataContext.Battles
+                .Where(b => b.Opponent1Id == characterId || b.Opponent1Id == characterId)
+                .Where(b => b.Active == true)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return battles;
         }
     }
 }
