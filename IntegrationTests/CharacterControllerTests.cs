@@ -16,9 +16,6 @@ namespace IntegrationTests
 
         private readonly HttpClient _client;
 
-        private bool _registered = false;
-        private bool _loggedIn = false;
-
         public CharacterControllerTests(IntegrationTestsWebApplicationFactory<Program> factory)
         {
             _factory = factory;
@@ -29,60 +26,9 @@ namespace IntegrationTests
             });
         }
 
-        private async Task Register()
-        {
-            if (_registered) { return; }
-
-            var registerResponse = await _client.PostAsJsonAsync("/register",
-                new { email = "user1@example.com", password = "Test123!" });
-
-            registerResponse.EnsureSuccessStatusCode();
-
-            _registered = true;
-        }
-
-        private async Task Login()
-        {
-            if (_loggedIn) { return; }
-
-            var loginResponse = await _client.PostAsJsonAsync("/login",
-                new { email = "user1@example.com", password = "Test123!" });
-
-            loginResponse.EnsureSuccessStatusCode();
-
-            var token = await loginResponse.Content.ReadFromJsonAsync<AccessTokenResponse>();
-            Assert.NotNull(token);
-
-            _client.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue(token.TokenType, token.AccessToken);
-
-            _loggedIn = true;
-        }
-
-        [Fact]
-        public async Task Test_CreateCharacter_Duplicate_ThrowsException()
-        {
-            await Register();
-            await Login();
-
-            var name = "Duplicate";
-            var race = 1;
-
-            var createResponse = await _client.PostAsync($"/api/Character?name={name}&raceId={race}", null);
-            createResponse.EnsureSuccessStatusCode();
-            var createCharacter = await createResponse.Content.ReadFromJsonAsync<Character>();
-            Assert.NotNull(createCharacter);
-            Assert.True(createCharacter.Id > 0);
-
-            var createDupResponse = await _client.PostAsync($"/api/Character?name={name}&raceId={race}", null);
-            var dupStatus = createDupResponse.StatusCode;
-            Assert.Equal(HttpStatusCode.BadRequest, dupStatus);
-        }
-
         [Fact]
         public async Task Test_CharacterController()
         {
-            await Register();
             await Login();
 
             // Create character
@@ -193,6 +139,49 @@ namespace IntegrationTests
             character = await getResponse.Content.ReadFromJsonAsync<Character>();
             Assert.NotNull(character);
             Assert.True(character.PrimaryItemId == null && character.SecondaryItemId == null);
+        }
+
+        [Fact]
+        public async Task Test_CreateCharacter_DuplicateName_BadRequesst()
+        {
+            await Login();
+
+            var name = "Duplicate";
+            var race = 1;
+
+            var createResponse = await _client.PostAsync($"/api/Character?name={name}&raceId={race}", null);
+            createResponse.EnsureSuccessStatusCode();
+            var createCharacter = await createResponse.Content.ReadFromJsonAsync<Character>();
+            Assert.NotNull(createCharacter);
+            Assert.True(createCharacter.Id > 0);
+
+            var createDupResponse = await _client.PostAsync($"/api/Character?name={name}&raceId={race}", null);
+            var dupStatus = createDupResponse.StatusCode;
+            Assert.Equal(HttpStatusCode.BadRequest, dupStatus);
+        }
+
+        private async Task Login()
+        {
+            var loginResponse = await _client.PostAsJsonAsync("/login",
+                new { email = "user1@example.com", password = "Test123!" });
+            var loginStatus = loginResponse.StatusCode;
+
+            if (loginStatus == HttpStatusCode.Unauthorized)
+            {
+                var registerResponse = await _client.PostAsJsonAsync("/register",
+                    new { email = "user1@example.com", password = "Test123!" });
+                registerResponse.EnsureSuccessStatusCode();
+
+                loginResponse = await _client.PostAsJsonAsync("/login",
+                    new { email = "user1@example.com", password = "Test123!" });
+                loginResponse.EnsureSuccessStatusCode();
+            }
+
+            var token = await loginResponse.Content.ReadFromJsonAsync<AccessTokenResponse>();
+            Assert.NotNull(token);
+
+            _client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue(token.TokenType, token.AccessToken);
         }
     }
 }

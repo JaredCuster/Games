@@ -10,7 +10,7 @@ namespace Games.Services
 
         public Task<Battle> AddBattleAsync(int opponent1Id, int opponent2Id);
 
-        public Task<BattleMoveResults> AddBattleMoveAsync(int battleId, int opponentId, Move move);
+        public Task<BattleMoveResults> AddBattleMoveAsync(int battleId, int opponentId, string moveName);
     }
 
     public class BattleService : IBattleService
@@ -77,8 +77,20 @@ namespace Games.Services
             return battle;
         }
 
-        public async Task<BattleMoveResults> AddBattleMoveAsync(int battleId, int opponentId, Move move)
+        public async Task<BattleMoveResults> AddBattleMoveAsync(int battleId, int opponentId, string moveName)
         {
+            // Parse the move
+            Move move;
+            try
+            {
+                move = Enum.Parse<Move>(moveName, true);
+            }
+            catch
+            {
+                var moves = string.Join(",", Enum.GetValues<Move>().Select(m => Enum.GetName(m)).ToList());
+                throw new BattleException($"Invalid Move - {moveName} Valid Moves: {moves}");
+            }
+
             using var transaction = _dataService.BeginTransaction();
 
             // Validate move

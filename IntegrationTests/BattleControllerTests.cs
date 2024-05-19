@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 using System.Runtime.Intrinsics.X86;
 using Xunit.Abstractions;
+using System.Net;
 
 namespace IntegrationTests
 {
@@ -18,9 +19,6 @@ namespace IntegrationTests
         private readonly IntegrationTestsWebApplicationFactory<Program> _factory;
 
         private readonly HttpClient _client;
-
-        private bool _registered = false;
-        private bool _loggedIn = false;
 
         private string _password = "Test123!";
 
@@ -45,7 +43,6 @@ namespace IntegrationTests
         [Fact]
         public async Task Test_CharacterController_AttackToDeath()
         {
-            await Register();
             await Login();
 
             var character1 = await CreateCharacter(_token1);
@@ -53,7 +50,7 @@ namespace IntegrationTests
 
             // User1 Starts a Battle
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token1);
-            var battleResponse = await _client.PostAsync($"/api/Battle?opponent1Id={character1.Id}&opponent2Id={character2.Id}", null);
+            var battleResponse = await _client.PostAsync($"/api/Battle?character1Id={character1.Id}&character2Id={character2.Id}", null);
             battleResponse.EnsureSuccessStatusCode();
             var battle = await battleResponse.Content.ReadFromJsonAsync<Battle>();
             Assert.NotNull(battle);
@@ -61,7 +58,7 @@ namespace IntegrationTests
 
             // User2 Accepts
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token2);
-            var acceptResponse = await _client.PostAsync($"/api/Battle/Move?battleId={battle.Id}&opponentId={character2.Id}&moveId={2}", null);
+            var acceptResponse = await _client.PostAsync($"/api/Battle/{battle.Id}/Move?characterId={character2.Id}&move=Accept", null);
             acceptResponse.EnsureSuccessStatusCode();
             var acceptResults = await acceptResponse.Content.ReadFromJsonAsync<BattleMoveResults>();
             Assert.NotNull(acceptResults);
@@ -82,7 +79,7 @@ namespace IntegrationTests
 
                 // Attack until death
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                attackResponse = await _client.PostAsync($"/api/Battle/Move?battleId={battle.Id}&opponentId={characterId}&moveId={3}", null);
+                attackResponse = await _client.PostAsync($"/api/Battle/{battle.Id}/Move?characterId={characterId}&move=Attack", null);
                 attackResponse.EnsureSuccessStatusCode();
                 attackResults = await attackResponse.Content.ReadFromJsonAsync<BattleMoveResults>();
                 Assert.NotNull(attackResults);
@@ -97,40 +94,41 @@ namespace IntegrationTests
             
         }
 
-        private async Task Register()
-        {
-            if (_registered) { return; }
-
-            var register1Response = await _client.PostAsJsonAsync("/register",
-                new { email = _user1, password = _password });
-            register1Response.EnsureSuccessStatusCode();
-
-            var register2Response = await _client.PostAsJsonAsync("/register",
-                new { email = _user2, password = _password });
-            register2Response.EnsureSuccessStatusCode();
-
-            _registered = true;
-        }
-
         private async Task Login()
         {
-            if (_loggedIn) { return; }
-
             var login1Response = await _client.PostAsJsonAsync("/login", 
                 new { email = _user1, password = _password });
-            login1Response.EnsureSuccessStatusCode();
+            var login1Status = login1Response.StatusCode;
+            if (login1Status == HttpStatusCode.Unauthorized)
+            {
+                var register1Response = await _client.PostAsJsonAsync("/register",
+                new { email = _user1, password = _password });
+                register1Response.EnsureSuccessStatusCode();
+
+                login1Response = await _client.PostAsJsonAsync("/login",
+                    new { email = _user1, password = _password });
+                login1Response.EnsureSuccessStatusCode();
+            }
             var token1Response = await login1Response.Content.ReadFromJsonAsync<AccessTokenResponse>();
             Assert.NotNull(token1Response);
             _token1 = token1Response.AccessToken;
 
             var login2Response = await _client.PostAsJsonAsync("/login", 
                 new { email = _user2, password = _password });
-            login2Response.EnsureSuccessStatusCode();
+            var login2Status = login2Response.StatusCode;
+            if (login2Status == HttpStatusCode.Unauthorized)
+            {
+                var register2Response = await _client.PostAsJsonAsync("/register",
+                new { email = _user2, password = _password });
+                register2Response.EnsureSuccessStatusCode();
+
+                login2Response = await _client.PostAsJsonAsync("/login",
+                    new { email = _user2, password = _password });
+                login2Response.EnsureSuccessStatusCode();
+            }
             var token2Response = await login2Response.Content.ReadFromJsonAsync<AccessTokenResponse>();
             Assert.NotNull(token2Response);
             _token2 = token2Response.AccessToken;
-
-            _loggedIn = true;
         }
 
         private async Task<Character> CreateCharacter(string token)

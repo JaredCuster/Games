@@ -21,13 +21,15 @@ namespace Games.Controllers
          * This may not be neccessary, possibly endpoints that just get your active battles
          */
         /// <summary>
-        /// Get the Battles you're involved in
+        /// Get the Battles
         /// </summary>
         /// <returns></returns>
         /// <response code="200">Returns the battles</response>
         /// <response code="401">Unauthorized</response>
+        /// <response code="403">Must be an Admin</response>
         [HttpGet]
         [Route("/api/Battles")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Battle>))]
         public async Task<IActionResult> GetAll()
         {
@@ -37,15 +39,17 @@ namespace Games.Controllers
         }
 
         /// <summary>
-        /// Get a specific battle you're involved in
+        /// Get a specific battle
         /// </summary>
         /// <param name="id">The id of the battle</param>
         /// <returns></returns>
         /// <response code="200">Returns the battle</response>
         /// <response code="401">Unauthorized</response>
+        /// <response code="403">Must be an Admin</response>
         /// <response code="404">Battle not found</response>
         [HttpGet]
         [Route("{id:int}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Battle))]
         public async Task<IActionResult> Get([FromRoute] int id)
         {
@@ -63,19 +67,19 @@ namespace Games.Controllers
         /// <summary>
         /// Start a battle
         /// </summary>
-        /// <param name="opponent1Id">The id of the character starting the battle (you must own this character)</param>
-        /// <param name="opponent2Id">The id of the other character involved in the battle</param>
+        /// <param name="character1Id">The id of the character starting the battle (you must own this character)</param>
+        /// <param name="character2Id">The id of the other character involved in the battle</param>
         /// <returns></returns>
         /// <response code="200">Returns the battle</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Invalid battle</response>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Character))]
-        public async Task<IActionResult> Add([FromQuery] int opponent1Id, [FromQuery] int opponent2Id)
+        public async Task<IActionResult> Add([FromQuery] int character1Id, [FromQuery] int character2Id)
         {
             try
             {
-                var battle = await _battleService.AddBattleAsync(opponent1Id, opponent2Id);
+                var battle = await _battleService.AddBattleAsync(character1Id, character2Id);
 
                 return Ok(battle);
             }
@@ -88,26 +92,24 @@ namespace Games.Controllers
         /// <summary>
         /// Make a battle move
         /// </summary>
-        /// <param name="battleId">The id of the battle</param>
-        /// <param name="opponentId">The id of the other character doing the move</param>
-        /// <param name="moveId">The id of the battle move</param>
+        /// <param name="id">The id of the battle</param>
+        /// <param name="characterId">The id of the character doing the move</param>
+        /// <param name="move">The battle move</param>
         /// <returns></returns>
         /// <remarks>
-        /// Moves: 1 = Initiate, 2 = Accept, 3 = Attack, 4 = Pursue, 5 = Retreat, 6 = Surrender, 7 = Quit
+        /// Valid Moves: Accept, Attack, Pursue, Retreat, Surrender, Quit
         /// </remarks>
         /// <response code="200">Returns the battle</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="404">Battle, opponent or move not found</response>
         /// <response code="400">Invalid battle move</response>
         [HttpPost]
-        [Route("Move")]
-        public async Task<IActionResult> AddMove(int battleId, int opponentId, int moveId)
+        [Route("{id:int}/Move")]
+        public async Task<IActionResult> AddMove([FromRoute] int id, int characterId, string move)
         {
             try
             {
-                var move = (Move)Enum.ToObject(typeof(Move), moveId);
-
-                var results = await _battleService.AddBattleMoveAsync(battleId, opponentId, move);
+                var results = await _battleService.AddBattleMoveAsync(id, characterId, move);
 
                 return Ok(results);
             }
