@@ -1,5 +1,5 @@
 ﻿using Games.Models;
-using Games.Services;
+using Games.Services.ControllerServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -11,9 +11,9 @@ namespace Games.Controllers
     [Produces("application/json")]
     public class InfoController : ControllerBase
     {
-        private IInfoService _infoService;
+        private IInfoControllerService _infoService;
 
-        public InfoController(IInfoService infoService)
+        public InfoController(IInfoControllerService infoService)
         {
             _infoService = infoService;
         }

@@ -1,5 +1,5 @@
 ﻿using Games.Models;
-using Games.Services;
+using Games.Services.ControllerServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,16 +10,13 @@ namespace Games.Controllers
     [Authorize]
     public class BattleController : ControllerBase
     {
-        private IBattleService _battleService;
+        private IBattleControllerService _battleService;
 
-        public BattleController(IBattleService battleService)
+        public BattleController(IBattleControllerService battleService)
         {
             _battleService = battleService;
         }
 
-        /* TODO
-         * This may not be neccessary, possibly endpoints that just get your active battles
-         */
         /// <summary>
         /// Get the Battles
         /// </summary>

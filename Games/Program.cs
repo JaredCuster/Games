@@ -1,4 +1,5 @@
 using Games.Data;
+using Games.Services.MessageServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -47,6 +48,8 @@ namespace Games
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<DataContext>();
 
+            builder.Services.AddSignalR();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -63,6 +66,8 @@ namespace Games
             app.UseAuthorization();
 
             app.MapControllers();
+
+            app.MapHub<GamesHub>("/Messages");
 
             app.MapPost("/logout", async (SignInManager<IdentityUser> signInManager,
                 [FromBody] object empty) =>

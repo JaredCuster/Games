@@ -1,27 +1,31 @@
 ﻿using Games.Data;
 using Games.Models;
-using Microsoft.EntityFrameworkCore;
+using Games.Services.DataServices;
 
-namespace Games.Services
+namespace Games.Services.ControllerServices
 {
-    public interface IInfoService
+    public interface IInfoControllerService
     {
         public Task<IEnumerable<CharacterRace>> GetRacesAsync();
 
         public Task<IEnumerable<Item>> GetItemsAsync();
     }
 
-    public class InfoService : IInfoService
+    public class InfoControllerService : IInfoControllerService
     {
-        private IInfoDataService _dataService;
+        private readonly ILogger<IInfoControllerService> _logger;
+        private readonly IInfoDataService _dataService;
 
-        public InfoService(IInfoDataService dataService)
+        public InfoControllerService(ILogger<IInfoControllerService> logger, IInfoDataService dataService)
         {
+            _logger = logger;
             _dataService = dataService;
         }
 
         public async Task<IEnumerable<CharacterRace>> GetRacesAsync()
         {
+            _logger.LogDebug($"{nameof(GetRacesAsync)}");
+
             var races = await _dataService.GetRacesAsync();
 
             return races;
@@ -29,6 +33,8 @@ namespace Games.Services
 
         public async Task<IEnumerable<Item>> GetItemsAsync()
         {
+            _logger.LogDebug($"{nameof(GetRacesAsync)}");
+
             var items = await _dataService.GetItemsAsync();
 
             return items;

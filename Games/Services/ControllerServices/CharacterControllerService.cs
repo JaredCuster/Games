@@ -1,4 +1,5 @@
 ﻿using Games.Models;
+using Games.Services.DataServices;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Mono.TextTemplating;
@@ -6,16 +7,16 @@ using System;
 using System.Security.Claims;
 using System.Xml.Linq;
 
-namespace Games.Services
+namespace Games.Services.ControllerServices
 {
-    public interface ICharacterService
+    public interface ICharacterControllerService
     {
         public Task<IEnumerable<Character>> GetCharactersAsync();
 
         public Task<IEnumerable<Character>> GetDeceasedCharactersAsync();
 
         public Task<Character> GetCharacterAsync(int id);
-        
+
         public Task<Character> AddCharacterAsync(string name, int raceId);
 
         public Task<Character> UpdateCharacterNameAsync(int id, string name);
@@ -37,19 +38,23 @@ namespace Games.Services
     }
 
 
-    public class CharacterService : ICharacterService
+    public class CharacterControllerService : ICharacterControllerService
     {
-        private ICharacterDataService _dataService;
+        private readonly ILogger<ICharacterControllerService> _logger;
+        private readonly ICharacterDataService _dataService;
 
         public const int defaultCharacterCapacity = 3;
 
-        public CharacterService(ICharacterDataService dataService)
+        public CharacterControllerService(ILogger<ICharacterControllerService> logger, ICharacterDataService dataService)
         {
+            _logger = logger;
             _dataService = dataService;
         }
 
         public async Task<IEnumerable<Character>> GetCharactersAsync()
         {
+            _logger.LogDebug($"{nameof(GetCharactersAsync)}");
+
             var characters = await _dataService.GetCharactersAsync();
 
             return characters;
@@ -57,6 +62,8 @@ namespace Games.Services
 
         public async Task<IEnumerable<Character>> GetDeceasedCharactersAsync()
         {
+            _logger.LogDebug($"{nameof(GetDeceasedCharactersAsync)}");
+
             var characters = await _dataService.GetDeceasedCharactersAsync();
 
             return characters;
@@ -64,6 +71,8 @@ namespace Games.Services
 
         public async Task<Character> GetCharacterAsync(int id)
         {
+            _logger.LogDebug($"{nameof(GetCharacterAsync)} - {id}");
+
             var character = await _dataService.GetCharacterAsync(id);
 
             return character;
@@ -71,6 +80,8 @@ namespace Games.Services
 
         public async Task<Character> AddCharacterAsync(string name, int raceId)
         {
+            _logger.LogDebug($"{nameof(AddCharacterAsync)} - {name}:{raceId}");
+
             var newCharacter = new Character()
             {
                 Name = name,
@@ -90,7 +101,9 @@ namespace Games.Services
                 var ie = dbe.InnerException as SqliteException;
                 if (ie?.SqliteErrorCode == 19)
                 {
-                    throw new CharacterException("Name already taken");
+                    var msg = "Name already taken";
+                    _logger.LogWarning($"{nameof(AddCharacterAsync)} {msg}");
+                    throw new CharacterException(msg);
                 }
             }
 
@@ -101,9 +114,13 @@ namespace Games.Services
 
         public async Task<Character> UpdateCharacterNameAsync(int id, string name)
         {
+            _logger.LogDebug($"{nameof(UpdateCharacterNameAsync)} -  {id}:{name}");
+
             if (string.IsNullOrWhiteSpace(name))
             {
-                throw new CharacterException("Invalid Name");
+                var msg = "Invalid Name";
+                _logger.LogWarning($"{nameof(UpdateCharacterNameAsync)} {msg}");
+                throw new CharacterException(msg);
             }
 
             await _dataService.UpdateCharacterNameAsync(id, name);
@@ -115,6 +132,8 @@ namespace Games.Services
 
         public async Task<Character> UpdateCharacterItemAsync(int id, int itemId, bool primary)
         {
+            _logger.LogDebug($"{nameof(UpdateCharacterItemAsync)} - {id}:{itemId}:{primary}");
+
             if (itemId == 0)
             {
                 if (primary)
@@ -128,9 +147,11 @@ namespace Games.Services
             }
             else
             {
-                if (!await IsItemUsable(id, itemId, primary)) 
-                { 
-                    throw new CharacterException("Invalid item selection"); 
+                if (!await IsItemUsable(id, itemId, primary))
+                {
+                    var msg = "Invalid item selection";
+                    _logger.LogWarning($"{nameof(UpdateCharacterItemAsync)} {msg}");
+                    throw new CharacterException(msg);
                 }
 
                 if (primary)
@@ -164,6 +185,8 @@ namespace Games.Services
 
         public async Task DeleteCharacterAsync(int id)
         {
+            _logger.LogDebug($"{nameof(DeleteCharacterAsync)} - {id}");
+
             await _dataService.DeleteCharacterAsync(id);
         }
 
@@ -178,6 +201,7 @@ namespace Games.Services
                        INNER JOIN ItemCategories AS ic ON i.CategoryId = ic.Id
                        WHERE ci.CharacterId = {characterId}")
                 .ToListAsync();*/
+            _logger.LogDebug($"{nameof(GetCharacterItemsAsync)} - {characterId}");
 
             var characterItems = await _dataService.GetCharacterItemsAsync(characterId);
 
@@ -186,6 +210,8 @@ namespace Games.Services
 
         public async Task<CharacterItem> GetCharacterItemAsync(int characterItemId)
         {
+            _logger.LogDebug($"{nameof(GetCharacterItemAsync)} - {characterItemId}");
+
             var characterItem = await _dataService.GetCharacterItemAsync(characterItemId);
 
             return characterItem;
@@ -193,6 +219,8 @@ namespace Games.Services
 
         public async Task<CharacterItem> AddCharacterItemAsync(int characterId, int itemId)
         {
+            _logger.LogDebug($"{nameof(AddCharacterItemAsync)} - {characterId}:{itemId}");
+
             var items = await _dataService.GetCharacterItemsAsync(characterId);
             var capacity = defaultCharacterCapacity;
             foreach (var item in items)
@@ -205,7 +233,9 @@ namespace Games.Services
 
             if (capacity <= items.Count())
             {
-                throw new CharacterException("Insufficient capacity");
+                var msg = "Insufficient capacity";
+                _logger.LogWarning($"{nameof(UpdateCharacterItemAsync)} {msg}");
+                throw new CharacterException(msg);
             }
 
             var newCharacterItem = new CharacterItem()
@@ -223,6 +253,8 @@ namespace Games.Services
 
         public async Task DeleteCharacterItemAsync(int characterItemId)
         {
+            _logger.LogDebug($"{nameof(DeleteCharacterItemAsync)} - :{characterItemId}");
+
             using var transaction = _dataService.BeginTransaction();
 
             var characterItem = await _dataService.GetCharacterItemAsync(characterItemId);
@@ -244,6 +276,8 @@ namespace Games.Services
 
         public async Task<IEnumerable<Battle>> GetCharacterBattlesAsync(int characterId)
         {
+            _logger.LogDebug($"{nameof(GetCharacterBattlesAsync)} - {characterId}");
+
             var battles = await _dataService.GetCharacterBattlesAsync(characterId);
 
             return battles;

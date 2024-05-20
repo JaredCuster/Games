@@ -1,5 +1,5 @@
 ﻿using Games.Models;
-using Games.Services;
+using Games.Services.ControllerServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
@@ -12,9 +12,9 @@ namespace Games.Controllers
     [Authorize]
     public class CharacterController : ControllerBase
     {
-        private ICharacterService _characterService;
+        private ICharacterControllerService _characterService;
 
-        public CharacterController(ICharacterService characterService)
+        public CharacterController(ICharacterControllerService characterService)
         {
             _characterService = characterService;
         }

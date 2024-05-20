@@ -1,5 +1,5 @@
 ﻿using Games.Models;
-using Games.Services;
+using Games.Services.ControllerServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +12,9 @@ namespace Games.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
     {
-        private IAdminService _adminService;
+        private IAdminControllerService _adminService;
 
-        public AdminController(IAdminService adminService)
+        public AdminController(IAdminControllerService adminService)
         {
             _adminService = adminService;
         }

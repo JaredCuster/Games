@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace Games.Services
+namespace Games.Services.DataServices
 {
     public interface IAdminDataService : IDataService
     {
@@ -19,14 +19,16 @@ namespace Games.Services
 
     public class AdminDataService : BaseDataService, IAdminDataService
     {
-        public AdminDataService(DataContext dataContext, IHttpContextAccessor httpContextAccessor) : 
-            base(dataContext, httpContextAccessor)
+        public AdminDataService(ILogger<IAdminDataService> logger, DataContext dataContext, IHttpContextAccessor httpContextAccessor) :
+            base(logger, dataContext, httpContextAccessor)
         {
-            
+
         }
 
         public async Task<ICollection<IdentityUser>> GetUsersAsync()
         {
+            _logger.LogDebug($"{nameof(GetUsersAsync)}");
+
             var users = await _dataContext.Users.ToListAsync();
 
             return users;
@@ -34,14 +36,23 @@ namespace Games.Services
 
         public async Task<IdentityUser> GetUserAsync(string email)
         {
-            var user = await _dataContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
-            if (user == null) { throw new NotFoundException($"User - ({email}) not found"); }
+            _logger.LogDebug($"{nameof(GetUserAsync)} - {email}");
 
-            return (user);
+            var user = await _dataContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
+            if (user == null) 
+            {
+                var msg = $"User ({email}) not found";
+                _logger.LogWarning($"{nameof(GetUserAsync)} {msg}");
+                throw new NotFoundException(msg);
+            }
+
+            return user;
         }
 
         public async Task<ICollection<Character>> GetUserCharactersAsync(string email)
         {
+            _logger.LogDebug($"{nameof(GetUserCharactersAsync)} - {email}");
+
             var owner = await GetUserAsync(email);
 
             var characters = await _dataContext.Characters
@@ -53,11 +64,17 @@ namespace Games.Services
 
         public async Task DeleteUserAsync(string email)
         {
+            _logger.LogDebug($"{nameof(DeleteUserAsync)} - {email}");
+
             var user = await _dataContext.Users.FindAsync(email);
             if (user != null)
             {
                 _dataContext.Remove(user);
                 await _dataContext.SaveChangesAsync();
+            }
+            else
+            {
+                _logger.LogInformation($"{nameof(GetUserAsync)} User ({email}) not found");
             }
         }
     }

@@ -1,18 +1,21 @@
 using Games.Models;
-using Games.Services;
+using Games.Services.ControllerServices;
+using Games.Services.DataServices;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace UnitTests
 {
     public class CharacterServiceTests
     {
+        public Mock<ILogger<ICharacterControllerService>> mockLogger = new Mock<ILogger<ICharacterControllerService>>();
         public Mock<ICharacterDataService> mockDataService = new Mock<ICharacterDataService>();
 
         [Fact]
         public async Task GetCharacters()
         {
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.GetCharactersAsync();
 
             mockDataService.Verify(s => s.GetCharactersAsync(), Times.Once());
@@ -21,7 +24,7 @@ namespace UnitTests
         [Fact]
         public async Task GetDeceasedCharacters()
         {
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.GetDeceasedCharactersAsync();
 
             mockDataService.Verify(s => s.GetDeceasedCharactersAsync(), Times.Once());
@@ -32,7 +35,7 @@ namespace UnitTests
         {
             const int id = 1;
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.GetCharacterAsync(id);
 
             mockDataService.Verify(s => s.GetCharacterAsync(
@@ -45,7 +48,7 @@ namespace UnitTests
             const string name = "TestName";
             const int raceId = 1;
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.AddCharacterAsync(name, raceId);
 
             mockDataService.Verify(s => s.AddCharacterAsync(
@@ -67,7 +70,7 @@ namespace UnitTests
             const int id = 1;
             const string name = "TestName";
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.UpdateCharacterNameAsync(id, name);
 
             mockDataService.Verify(s => s.UpdateCharacterNameAsync(
@@ -83,7 +86,7 @@ namespace UnitTests
             const int id = 1;
             const string name = "";
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             var actual = () => characterService.UpdateCharacterNameAsync(id, name);
 
             Assert.ThrowsAsync<CharacterException>(actual);
@@ -95,7 +98,7 @@ namespace UnitTests
             const int id = 1;
             const int itemId = 0;
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.UpdateCharacterItemAsync(id, itemId, true);
 
             mockDataService.Verify(s => s.UpdateCharacterPrimaryItemAsync(
@@ -111,7 +114,7 @@ namespace UnitTests
             const int id = 1;
             const int itemId = 0;
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.UpdateCharacterItemAsync(id, itemId, false);
 
             mockDataService.Verify(s => s.UpdateCharacterSecondaryItemAsync(
@@ -132,7 +135,7 @@ namespace UnitTests
 
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.UpdateCharacterItemAsync(id, itemId, true);
 
             mockDataService.Verify(s => s.UpdateCharacterPrimaryItemAsync(
@@ -154,7 +157,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
             
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.UpdateCharacterItemAsync(id, itemId, false);
 
             mockDataService.Verify(s => s.UpdateCharacterSecondaryItemAsync(
@@ -177,7 +180,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             var actual = () => characterService.UpdateCharacterItemAsync(id, itemId, true);
 
             Assert.ThrowsAsync<CharacterException>(actual);
@@ -196,7 +199,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             var actual = () => characterService.UpdateCharacterItemAsync(id, itemId, false);
 
             Assert.ThrowsAsync<CharacterException>(actual);
@@ -209,7 +212,7 @@ namespace UnitTests
 
             const int id = 1;
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.DeleteCharacterAsync(id);
 
             mockDataService.Verify(s => s.DeleteCharacterAsync(
@@ -221,7 +224,7 @@ namespace UnitTests
         {
             const int id = 1;
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.GetCharacterItemsAsync(id);
 
             mockDataService.Verify(s => s.GetCharacterItemsAsync(
@@ -233,7 +236,7 @@ namespace UnitTests
         {
             const int id = 1;
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.GetCharacterItemAsync(id);
 
             mockDataService.Verify(s => s.GetCharacterItemAsync(
@@ -249,7 +252,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterItemsAsync(It.IsAny<int>()))
                 .ReturnsAsync([]);
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.AddCharacterItemAsync(id, itemId);
 
             mockDataService.Verify(s => s.AddCharacterItemAsync(
@@ -276,7 +279,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterItemsAsync(It.IsAny<int>()))
                 .ReturnsAsync(items);
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             var actual = () => characterService.AddCharacterItemAsync(id, itemId);
 
             Assert.ThrowsAsync<CharacterException>(actual);
@@ -302,7 +305,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.DeleteCharacterItemAsync(characterItemId);
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
@@ -337,7 +340,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.DeleteCharacterItemAsync(characterItemId);
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
@@ -375,7 +378,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(It.IsAny<int>()))
                 .ReturnsAsync(character);
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.DeleteCharacterItemAsync(characterItemId);
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
@@ -397,7 +400,7 @@ namespace UnitTests
         {
             const int id = 1;
 
-            var characterService = new CharacterService(mockDataService.Object);
+            var characterService = new CharacterControllerService(mockLogger.Object, mockDataService.Object);
             await characterService.GetCharacterBattlesAsync(id);
 
             mockDataService.Verify(s => s.GetCharacterBattlesAsync(

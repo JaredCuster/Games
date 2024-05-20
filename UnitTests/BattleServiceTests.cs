@@ -1,19 +1,28 @@
 using Games.Models;
-using Games.Services;
+using Games.Services.ControllerServices;
+using Games.Services.DataServices;
+using Games.Services.MessageServices;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using Moq;
-using System.Xml.Linq;
 
 namespace UnitTests
 {
     public class BattleServiceTests
     {
+        public Mock<ILogger<IBattleControllerService>> mockLogger = new Mock<ILogger<IBattleControllerService>>();
+        public Mock<IMessageService> mockMessageService = new Mock<IMessageService>();
         public Mock<IBattleDataService> mockDataService = new Mock<IBattleDataService>();
+
+        private BattleControllerService GetBattleService()
+        {
+            return new BattleControllerService(mockLogger.Object, mockMessageService.Object, mockDataService.Object);
+        }
 
         [Fact]
         public async Task GetBattles()
         {
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             await battleService.GetBattlesAsync();
 
             mockDataService.Verify(s => s.GetBattlesAsync(), Times.Once());
@@ -24,7 +33,7 @@ namespace UnitTests
         {
             const int id = 1;
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             await battleService.GetBattleAsync(id);
 
             mockDataService.Verify(s => s.GetBattleAsync(
@@ -59,7 +68,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetBattleAsync(It.IsAny<int>()))
                 .ReturnsAsync(It.IsAny<Battle>());
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             await battleService.AddBattleAsync(opponent1Id, opponent2Id);
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
@@ -117,7 +126,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             var actual = () => battleService.AddBattleAsync(opponent1Id, opponent2Id);
 
             Assert.ThrowsAsync<BattleException>(actual);
@@ -144,7 +153,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             var actual = () => battleService.AddBattleAsync(opponent1Id, opponent2Id);
 
             Assert.ThrowsAsync<BattleException>(actual);
@@ -152,7 +161,7 @@ namespace UnitTests
         [Fact]
         public void AddBattleMove_InvalidMove_ThrowsException()
         {
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             var actual = () => battleService.AddBattleMoveAsync(1, 2, "InvalidMove");
 
             Assert.ThrowsAsync<BattleException>(actual);
@@ -189,7 +198,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Accept.ToString());
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
@@ -239,7 +248,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Retreat.ToString());
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
@@ -289,7 +298,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Attack.ToString());
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
@@ -343,7 +352,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Attack.ToString());
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
@@ -406,7 +415,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Surrender.ToString());
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
@@ -463,7 +472,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Attack.ToString());
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
@@ -518,7 +527,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Attack.ToString());
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
@@ -579,7 +588,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Retreat.ToString());
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
@@ -631,7 +640,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Surrender.ToString());
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
@@ -690,7 +699,7 @@ namespace UnitTests
             mockDataService.Setup(ds => ds.GetCharacterAsync(opponent2Id))
                .ReturnsAsync(character2);
 
-            var battleService = new BattleService(mockDataService.Object);
+            var battleService = GetBattleService();
             var results = await battleService.AddBattleMoveAsync(battleId, aggressorId, Move.Pursue.ToString());
 
             mockDataService.Verify(s => s.BeginTransaction(), Times.Once);
